@@ -38,7 +38,7 @@ class MyApp extends StatelessWidget {
                     label: 'Delete',
                   ),
                   SlidableAction(
-                    onPressed: doNothing,
+                    // onPressed: doNothing,
                     backgroundColor: Color(0xFF21B7CA),
                     foregroundColor: Colors.white,
                     icon: Icons.share,

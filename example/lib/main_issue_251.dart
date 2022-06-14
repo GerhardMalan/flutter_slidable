@@ -68,6 +68,7 @@ class _ListItemState extends State<ListItem> {
         startActionPane: ActionPane(
           closeThreshold: 0.5,
           openThreshold: 0.6,
+          // ignore: avoid_redundant_argument_values
           extentRatio: 0.5,
           motion: const BehindMotion(),
           children: [RememberedArea(colorNotifier: colorNotifier)],

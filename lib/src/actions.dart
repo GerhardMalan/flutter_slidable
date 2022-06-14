@@ -11,12 +11,16 @@ const bool _kAutoClose = true;
 
 /// Represents an action of an [ActionPane].
 class CustomSlidableAction extends StatelessWidget {
+  //
   /// Creates a [CustomSlidableAction].
   ///
   /// The [flex], [backgroundColor], [autoClose] and [child] arguments must not
   /// be null.
   ///
   /// The [flex] argument must also be greater than 0.
+  ///
+  /// When [onPressed] is null, the [disabledForegroundColor] will be used,
+  /// if provided.
   const CustomSlidableAction({
     Key? key,
     this.flex = _kFlex,
@@ -25,8 +29,9 @@ class CustomSlidableAction extends StatelessWidget {
     this.autoClose = _kAutoClose,
     this.borderRadius = BorderRadius.zero,
     this.padding,
-    required this.onPressed,
+    this.onPressed,
     required this.child,
+    this.disabledForegroundColor,
   })  : assert(flex > 0),
         super(key: key);
 
@@ -46,6 +51,9 @@ class CustomSlidableAction extends StatelessWidget {
   /// {@endtemplate}
   final Color backgroundColor;
 
+  /// Returns true if [onPressed] is null.
+  bool get disabled => onPressed == null;
+
   /// {@template slidable.actions.foregroundColor}
   /// The foreground color of this action.
   ///
@@ -54,6 +62,11 @@ class CustomSlidableAction extends StatelessWidget {
   /// [Brightness.dark].
   /// {@endtemplate}
   final Color? foregroundColor;
+
+  /// The foreground color of this action when [disabled].
+  ///
+  /// Defaults to [foregroundColor].
+  final Color? disabledForegroundColor;
 
   /// {@template slidable.actions.autoClose}
   /// Whether the enclosing [Slidable] will be closed after [onPressed]
@@ -83,14 +96,35 @@ class CustomSlidableAction extends StatelessWidget {
   /// Typically the action's icon or label.
   final Widget child;
 
+  /// Returns the effective foreground color:
+  ///
+  /// - If not [disabled], returns [foregroundColor] if it is not null. If
+  ///   [foregroundColor] is null, returns either [Colors.black] or
+  ///   [Colors.white], depending on the estimated brightness of the
+  ///   [backgroundColor].
+  ///
+  /// - If [disabled], returns [disabledForegroundColor] if it is not null. If
+  ///   [disabledForegroundColor] is null, returns [foregroundColor] with
+  ///   opacity of 38% applied. If [foregroundColor] is null, returns either
+  ///   [Colors.black] or [Colors.white], depending on the estimated brightness
+  ///   of the [backgroundColor], with opacity of 62% applied.
+  Color get effectiveForegroundColor => disabled
+      ? disabledForegroundColor ??
+          (foregroundColor ??
+                  (ThemeData.estimateBrightnessForColor(backgroundColor) ==
+                          Brightness.light
+                      ? Colors.black
+                      : Colors.white))
+              .withOpacity(0.62)
+      : foregroundColor ??
+          (ThemeData.estimateBrightnessForColor(backgroundColor) ==
+                  Brightness.light
+              ? Colors.black
+              : Colors.white);
+
   @override
   Widget build(BuildContext context) {
-    final effectiveForegroundColor = foregroundColor ??
-        (ThemeData.estimateBrightnessForColor(backgroundColor) ==
-                Brightness.light
-            ? Colors.black
-            : Colors.white);
-
+    final clrForegroundColor = effectiveForegroundColor;
     return Expanded(
       flex: flex,
       child: SizedBox.expand(
@@ -99,8 +133,8 @@ class CustomSlidableAction extends StatelessWidget {
           style: OutlinedButton.styleFrom(
             padding: padding,
             backgroundColor: backgroundColor,
-            primary: effectiveForegroundColor,
-            onSurface: effectiveForegroundColor,
+            primary: clrForegroundColor,
+            onSurface: clrForegroundColor,
             shape: RoundedRectangleBorder(
               borderRadius: borderRadius,
             ),
@@ -122,6 +156,7 @@ class CustomSlidableAction extends StatelessWidget {
 
 /// An action for [Slidable] which can show an icon, a label, or both.
 class SlidableAction extends StatelessWidget {
+  //
   /// Creates a [SlidableAction].
   ///
   /// The [flex], [backgroundColor], [autoClose] and [spacing] arguments
@@ -130,21 +165,59 @@ class SlidableAction extends StatelessWidget {
   /// You must set either an [icon] or a [label].
   ///
   /// The [flex] argument must also be greater than 0.
+  ///
+  /// If [onPressed] is not provided, then [disabled] will return true.
+  ///
+  /// When [disabled] is true, the [disabledIcon], [disabledLabel],
+  /// [disabledForegroundColor] and [disabledLabelStyle] will be used,
+  /// if provided.
   const SlidableAction({
     Key? key,
     this.flex = _kFlex,
     this.backgroundColor = _kBackgroundColor,
     this.foregroundColor,
     this.autoClose = _kAutoClose,
-    required this.onPressed,
+    this.onPressed,
     this.icon,
-    this.spacing = 4,
+    this.spacing = 4.0,
     this.label,
     this.borderRadius = BorderRadius.zero,
     this.padding,
+    this.iconSize,
+    this.labelStyle,
+    this.disabledForegroundColor,
+    this.disabledLabelStyle,
+    this.disabledIcon,
+    this.disabledLabel,
   })  : assert(flex > 0),
         assert(icon != null || label != null),
         super(key: key);
+
+  /// The foreground color of this action when [disabled].
+  ///
+  /// Defaults to [foregroundColor].
+  final Color? disabledForegroundColor;
+
+  /// Returns true if [onPressed] is null.
+  bool get disabled => onPressed == null;
+
+  /// The size of the [icon] displayed on the [SlidableAction].
+  ///
+  /// Defaults to the current [IconTheme] size, if any. If there is no
+  /// [IconTheme], or it does not specify an explicit size, then it
+  /// defaults to 24.0.
+  final double? iconSize;
+
+  /// The [TextStyle] of the [label] widget.
+  ///
+  /// Defaults to the default text size (14.0) and [foregroundColor].
+  final TextStyle? labelStyle;
+
+  /// The [TextStyle] of the [label] widget when the [SlidableAction] is
+  /// [disabled]. The
+  ///
+  /// Defaults to [labelStyle].
+  final TextStyle? disabledLabelStyle;
 
   /// {@macro slidable.actions.flex}
   final int flex;
@@ -164,6 +237,11 @@ class SlidableAction extends StatelessWidget {
   /// An icon to display above the [label].
   final IconData? icon;
 
+  /// The icon to display when [disabled].
+  ///
+  /// Defaults to [icon].
+  final IconData? disabledIcon;
+
   /// The space between [icon] and [label] if both set.
   ///
   /// Defaults to 4.
@@ -171,6 +249,12 @@ class SlidableAction extends StatelessWidget {
 
   /// A label to display below the [icon].
   final String? label;
+
+  /// A label to display below the [icon] when the [SlidableAction] is
+  /// [disabled].
+  ///
+  /// Defaults to [label].
+  final String? disabledLabel;
 
   /// Padding of the OutlinedButton
   final BorderRadius borderRadius;
@@ -184,7 +268,10 @@ class SlidableAction extends StatelessWidget {
 
     if (icon != null) {
       children.add(
-        Icon(icon),
+        Icon(
+          disabled ? disabledIcon ?? icon : icon,
+          size: iconSize,
+        ),
       );
     }
 
@@ -197,8 +284,9 @@ class SlidableAction extends StatelessWidget {
 
       children.add(
         Text(
-          label!,
+          disabled ? disabledLabel ?? label! : label!,
           overflow: TextOverflow.ellipsis,
+          style: disabled ? disabledLabelStyle ?? labelStyle : labelStyle,
         ),
       );
     }

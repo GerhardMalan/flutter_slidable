@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
@@ -266,9 +267,9 @@ class SlideAction extends StatelessWidget {
       flex: flex,
       backgroundColor: color,
       foregroundColor: Colors.white,
-      onPressed: (_) {
-        print(icon);
-      },
+      // onPressed: (_) {
+      //   print(icon);
+      // },
       icon: icon,
       label: 'hello',
     );
@@ -291,7 +292,9 @@ class Tile extends StatelessWidget {
     return ActionTypeListener(
       child: GestureDetector(
         onTap: () {
-          print('$text');
+          if (kDebugMode) {
+            print(text);
+          }
         },
         onLongPress: () => Slidable.of(context)!.openEndActionPane(),
         child: Container(
