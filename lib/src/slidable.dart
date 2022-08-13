@@ -20,6 +20,7 @@ class Slidable extends StatefulWidget {
   const Slidable({
     Key? key,
     this.groupTag,
+    this.margin = const EdgeInsets.all(0),
     this.enabled = true,
     this.closeOnScroll = true,
     this.startActionPane,
@@ -29,6 +30,11 @@ class Slidable extends StatefulWidget {
     this.useTextDirection = true,
     required this.child,
   }) : super(key: key);
+
+  /// The margin to include around the rendered [Card].
+  ///
+  /// Defaults to [EdgeInsets.zero].
+  final EdgeInsets? margin;
 
   /// Whether this slidable is interactive.
   ///
@@ -253,28 +259,31 @@ class _SlidableState extends State<Slidable>
       ],
     );
 
-    return SlidableGestureDetector(
-      enabled: widget.enabled,
-      controller: controller,
-      direction: widget.direction,
-      dragStartBehavior: widget.dragStartBehavior,
-      child: SlidableAutoCloseNotificationSender(
-        groupTag: widget.groupTag,
+    return Padding(
+      padding: widget.margin ?? EdgeInsets.zero,
+      child: SlidableGestureDetector(
+        enabled: widget.enabled,
         controller: controller,
-        child: SlidableScrollingBehavior(
+        direction: widget.direction,
+        dragStartBehavior: widget.dragStartBehavior,
+        child: SlidableAutoCloseNotificationSender(
+          groupTag: widget.groupTag,
           controller: controller,
-          closeOnScroll: widget.closeOnScroll,
-          child: SlidableDismissal(
-            axis: flipAxis(widget.direction),
+          child: SlidableScrollingBehavior(
             controller: controller,
-            child: ActionPaneConfiguration(
-              alignment: actionPaneAlignment,
-              direction: widget.direction,
-              isStartActionPane:
-                  controller.actionPaneType.value == ActionPaneType.start,
-              child: _SlidableControllerScope(
-                controller: controller,
-                child: content,
+            closeOnScroll: widget.closeOnScroll,
+            child: SlidableDismissal(
+              axis: flipAxis(widget.direction),
+              controller: controller,
+              child: ActionPaneConfiguration(
+                alignment: actionPaneAlignment,
+                direction: widget.direction,
+                isStartActionPane:
+                    controller.actionPaneType.value == ActionPaneType.start,
+                child: _SlidableControllerScope(
+                  controller: controller,
+                  child: content,
+                ),
               ),
             ),
           ),
